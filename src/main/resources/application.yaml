@@ -2,7 +2,7 @@ spring:
   application:
     name: GaraseKu
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5881/garaseku-db
+    url: jdbc:postgresql://127.0.0.1:5880/garaseku-db
     username: garaseku-admin
     password: Garaseku5881
     driver-class-name: org.postgresql.Driver
@@ -10,9 +10,3 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-  cassandra:
-    keyspace-name: garaseku
-    contact-points: 127.0.0.1
-    port: 9042
-    local-datacenter: datacenter1
-    schema-action: create-if-not-exists
