@@ -5,14 +5,13 @@ import java.io.IOException;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.faisalrmdhn.GaraseKu.exception.UnauthorizedException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -46,22 +45,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    final String jwt = header.substring(7);
-    final String userEmail = jwtAuthenticationHandler.extractUsername(jwt);
+    try {
+      final String jwt = header.substring(7);
+      final String userEmail = jwtAuthenticationHandler.extractUsername(jwt);
 
-    if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-      var userDetails = userDetailsService.loadUserByUsername(userEmail);
+      if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        var userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-      if (!jwtAuthenticationHandler.isTokenValid(jwt, userDetails)) {
-        LOGGER.warn("[GARASEKU LOG]: Invalid or expired refresh token for user: {}", userEmail);
-        throw new UnauthorizedException("Invalid or expired refresh token.");
+        if (!jwtAuthenticationHandler.isTokenValid(jwt, userDetails)) {
+          LOGGER.warn("[GARASEKU LOG]: Invalid or expired access token for user: {}", userEmail);
+          response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid or expired access token.");
+          return;
+        }
+
+        var token = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(token);
       }
-
-      var token = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-      token.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-      SecurityContextHolder.getContext().setAuthentication(token);
+    } catch (RuntimeException exception) {
+      SecurityContextHolder.clearContext();
+      LOGGER.warn("[GARASEKU LOG]: Access token validation failed.", exception);
+      response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid or expired access token.");
+      return;
     }
     filterChain.doFilter(request, response);
+  }
+
+  @Override
+  protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+    String path = request.getServletPath();
+    return "/api/auth/login".equals(path)
+        || "/api/auth/register".equals(path)
+        || "/api/auth/refresh".equals(path);
   }
 }

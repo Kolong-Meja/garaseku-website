@@ -3,6 +3,7 @@ package com.faisalrmdhn.GaraseKu.service;
 import org.springframework.http.ResponseEntity;
 
 import com.faisalrmdhn.GaraseKu.model.dto.payloads.LoginRequest;
+import com.faisalrmdhn.GaraseKu.model.dto.payloads.RefreshTokenRequest;
 import com.faisalrmdhn.GaraseKu.model.dto.payloads.RegisterRequest;
 import com.faisalrmdhn.GaraseKu.model.dto.responses.ApiResponse;
 
@@ -14,4 +15,6 @@ public interface AuthService {
   ResponseEntity<ApiResponse> login(LoginRequest loginRequest);
 
   ResponseEntity<ApiResponse> me(HttpServletRequest request);
+
+  ResponseEntity<ApiResponse> refresh(RefreshTokenRequest refreshTokenRequest);
 }
