@@ -27,8 +27,13 @@ public interface MasterUserRepository extends JpaRepository<MasterUser, MasterUs
   @Query("SELECT u FROM MasterUser u WHERE u.vusername = :vusername")
   Optional<MasterUser> findByUsername(@Param("vusername") String vusername);
 
-  @Query("SELECT u FROM MasterUser u WHERE u.vemail = :vemail")
+  @EntityGraph(attributePaths = "roles")
+  @Query("SELECT u FROM MasterUser u WHERE LOWER(u.vemail) = LOWER(:vemail)")
   Optional<MasterUser> findByEmail(@Param("vemail") String vemail);
+
+  @EntityGraph(attributePaths = { "roles", "settings" })
+  @Query("SELECT DISTINCT u FROM MasterUser u WHERE LOWER(u.vemail) = LOWER(:vemail)")
+  Optional<MasterUser> findByEmailWithProfile(@Param("vemail") String vemail);
 
   @Query("SELECT DISTINCT u FROM MasterUser u JOIN u.roles r WHERE LOWER(r.vrolename) = LOWER(:role)")
   List<MasterUser> findByRole(@Param("role") String role);

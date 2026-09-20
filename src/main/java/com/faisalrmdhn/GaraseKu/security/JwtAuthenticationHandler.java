@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import com.faisalrmdhn.GaraseKu.model.entity.MasterUser;
+import com.faisalrmdhn.GaraseKu.exception.UnauthorizedException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -36,25 +38,30 @@ public class JwtAuthenticationHandler {
   private RSAPublicKey publicKey;
 
   @Value("${jwt.expiration}")
-  private int jwtExpirationMs;
+  private long jwtExpirationMs;
 
   @Value("${jwt.refresh.token.expiration}")
-  private int refreshTokenExpirationMs;
+  private long refreshTokenExpirationMs;
+
+  private static final String TOKEN_TYPE_CLAIM = "token_type";
+  private static final String ACCESS_TOKEN_TYPE = "access";
+  private static final String REFRESH_TOKEN_TYPE = "refresh";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationHandler.class);
 
   public JwtAuthenticationHandler() {
   }
 
-  public JwtAuthenticationHandler(RSAPrivateKey privateKey, RSAPublicKey publicKey, int jwtExpirationMs,
-      int refreshTokenExpirationMs) {
+  public JwtAuthenticationHandler(RSAPrivateKey privateKey, RSAPublicKey publicKey, long jwtExpirationMs,
+      long refreshTokenExpirationMs) {
     this.privateKey = privateKey;
     this.publicKey = publicKey;
     this.jwtExpirationMs = jwtExpirationMs;
     this.refreshTokenExpirationMs = refreshTokenExpirationMs;
   }
 
-  private String createJwt(MasterUser user) throws InvalidKeyException, UnknownHostException {
+  private String createJwt(MasterUser user, long expirationMs, String tokenType)
+      throws InvalidKeyException, UnknownHostException {
     LOGGER.info("[GARASEKU LOG]: Start creating JWT");
     List<String> userRoles = user.getRoles()
         .stream()
@@ -62,13 +69,14 @@ public class JwtAuthenticationHandler {
         .collect(Collectors.toList());
 
     byte[] bytes = new byte[16];
-    SecureRandom random = new SecureRandom(bytes);
-    var jwtId = Integer.toHexString(random.nextInt());
+    SecureRandom random = new SecureRandom();
+    random.nextBytes(bytes);
+    var jwtId = HexFormat.of().formatHex(bytes);
 
     ZoneId zoneId = ZoneId.of("Asia/Jakarta");
     LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Jakarta"));
 
-    var exp = Date.from(now.plus(jwtExpirationMs, ChronoUnit.MILLIS).atZone(zoneId).toInstant());
+    var exp = Date.from(now.plus(expirationMs, ChronoUnit.MILLIS).atZone(zoneId).toInstant());
     var iss = Date.from(now.atZone(zoneId).toInstant());
     var nbf = Date.from(now.atZone(zoneId).toInstant());
     var hostName = InetAddress.getLocalHost().getHostName();
@@ -76,6 +84,7 @@ public class JwtAuthenticationHandler {
     var customClaims = new HashMap<String, Object>();
     customClaims.put("name", user.getVfullname());
     customClaims.put("roles", userRoles);
+    customClaims.put(TOKEN_TYPE_CLAIM, tokenType);
 
     LOGGER.info("[GARASEKU LOG]: Finish creating JWT");
     return Jwts.builder()
@@ -110,18 +119,31 @@ public class JwtAuthenticationHandler {
           .build()
           .parseSignedClaims(token)
           .getPayload();
-    } catch (JwtException e) {
+    } catch (JwtException | IllegalArgumentException e) {
       LOGGER.error("[GARASEKU LOG]: Invalid or expired token.", e);
-      throw new RuntimeException("Invalid or expired token.", e);
+      throw new UnauthorizedException("Invalid or expired token.");
     }
   }
 
   public String generateToken(MasterUser user) {
+    return generateAccessToken(user);
+  }
+
+  public String generateAccessToken(MasterUser user) {
     try {
-      return createJwt(user);
+      return createJwt(user, jwtExpirationMs, ACCESS_TOKEN_TYPE);
     } catch (InvalidKeyException | UnknownHostException e) {
       LOGGER.error("[GARASEKU LOG]: Error occurred while generating token.", e);
       throw new RuntimeException("Error occurred while generating token.", e);
+    }
+  }
+
+  public String generateRefreshToken(MasterUser user) {
+    try {
+      return createJwt(user, refreshTokenExpirationMs, REFRESH_TOKEN_TYPE);
+    } catch (InvalidKeyException | UnknownHostException e) {
+      LOGGER.error("[GARASEKU LOG]: Error occurred while generating refresh token.", e);
+      throw new RuntimeException("Error occurred while generating refresh token.", e);
     }
   }
 
@@ -131,6 +153,19 @@ public class JwtAuthenticationHandler {
 
   public boolean isTokenValid(String token, UserDetails userDetails) {
     final String email = extractUsername(token);
-    return (email.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    return email.equalsIgnoreCase(userDetails.getUsername())
+        && ACCESS_TOKEN_TYPE.equals(extractTokenType(token))
+        && !isTokenExpired(token);
+  }
+
+  public boolean isRefreshTokenValid(String token, UserDetails userDetails) {
+    final String email = extractUsername(token);
+    return email.equalsIgnoreCase(userDetails.getUsername())
+        && REFRESH_TOKEN_TYPE.equals(extractTokenType(token))
+        && !isTokenExpired(token);
+  }
+
+  private String extractTokenType(String token) {
+    return extractClaim(token, claims -> claims.get(TOKEN_TYPE_CLAIM, String.class));
   }
 }
