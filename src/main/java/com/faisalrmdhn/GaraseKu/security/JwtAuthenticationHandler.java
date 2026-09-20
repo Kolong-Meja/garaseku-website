@@ -81,7 +81,7 @@ public class JwtAuthenticationHandler {
     return Jwts.builder()
         .claims(customClaims)
         .issuer(hostName)
-        .subject(user.getMasterUserPk().getVemail())
+        .subject(user.getVemail())
         .expiration(exp)
         .notBefore(nbf)
         .issuedAt(iss)

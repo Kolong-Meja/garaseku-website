@@ -3,7 +3,9 @@ package com.faisalrmdhn.GaraseKu.model.entity;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 
+@MappedSuperclass
 public class DefaultEntity {
   @Column(name = "created_by", nullable = true)
   private String createdBy;

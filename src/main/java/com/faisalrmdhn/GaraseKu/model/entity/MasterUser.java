@@ -2,6 +2,7 @@ package com.faisalrmdhn.GaraseKu.model.entity;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,17 +20,22 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "master_users", indexes = {
-    @Index(name = "idx_master_users_username", columnList = "vusername"),
-    @Index(name = "idx_master_users_email", columnList = "vemail"),
     @Index(name = "idx_master_users_phone_number", columnList = "vphonenumber")
 })
 public class MasterUser extends DefaultEntity implements UserDetails {
   @EmbeddedId
   private MasterUserPk masterUserPk;
+
+  @Column(name = "vusername", nullable = false, unique = true, length = 100)
+  private String vusername;
+
+  @Column(name = "vemail", nullable = false, unique = true, length = 100)
+  private String vemail;
 
   @Column(name = "vphonenumber", nullable = true, length = 20)
   private String vphonenumber;
@@ -44,29 +50,37 @@ public class MasterUser extends DefaultEntity implements UserDetails {
       CascadeType.PERSIST,
       CascadeType.MERGE
   })
-  @JoinTable(name = "master_user_roles", joinColumns = @JoinColumn(name = "vuserid", nullable = false), inverseJoinColumns = @JoinColumn(name = "vroleid", nullable = false))
-  private Set<MasterRole> roles;
+  @JoinTable(name = "master_user_roles", joinColumns = @JoinColumn(name = "vuserid", referencedColumnName = "vuserid", nullable = false), inverseJoinColumns = @JoinColumn(name = "vroleid", referencedColumnName = "vroleid", nullable = false))
+  private Set<MasterRole> roles = new LinkedHashSet<>();
+
+  @OneToMany(mappedBy = "masterUser", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<MasterUserSetting> settings = new LinkedHashSet<>();
 
   public MasterUser() {
   }
 
-  public MasterUser(MasterUserPk masterUserPk, String vphonenumber, String vpassword, String vfullname,
-      Set<MasterRole> roles) {
+  public MasterUser(MasterUserPk masterUserPk, String vusername, String vemail, String vphonenumber,
+      String vpassword, String vfullname, Set<MasterRole> roles) {
     this.masterUserPk = masterUserPk;
+    this.vusername = vusername;
+    this.vemail = vemail;
     this.vphonenumber = vphonenumber;
     this.vpassword = vpassword;
     this.vfullname = vfullname;
-    this.roles = roles;
+    setRoles(roles);
   }
 
   public MasterUser(String createdBy, LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt,
-      MasterUserPk masterUserPk, String vphonenumber, String vpassword, String vfullname, Set<MasterRole> roles) {
+      MasterUserPk masterUserPk, String vusername, String vemail, String vphonenumber, String vpassword,
+      String vfullname, Set<MasterRole> roles) {
     super(createdBy, createdAt, updatedBy, updatedAt);
     this.masterUserPk = masterUserPk;
+    this.vusername = vusername;
+    this.vemail = vemail;
     this.vphonenumber = vphonenumber;
     this.vpassword = vpassword;
     this.vfullname = vfullname;
-    this.roles = roles;
+    setRoles(roles);
   }
 
   public MasterUserPk getMasterUserPk() {
@@ -75,6 +89,22 @@ public class MasterUser extends DefaultEntity implements UserDetails {
 
   public void setMasterUserPk(MasterUserPk masterUserPk) {
     this.masterUserPk = masterUserPk;
+  }
+
+  public String getVusername() {
+    return vusername;
+  }
+
+  public void setVusername(String vusername) {
+    this.vusername = vusername;
+  }
+
+  public String getVemail() {
+    return vemail;
+  }
+
+  public void setVemail(String vemail) {
+    this.vemail = vemail;
   }
 
   public String getVphonenumber() {
@@ -106,7 +136,28 @@ public class MasterUser extends DefaultEntity implements UserDetails {
   }
 
   public void setRoles(Set<MasterRole> roles) {
-    this.roles = roles;
+    this.roles = roles == null ? new LinkedHashSet<>() : roles;
+  }
+
+  public Set<MasterUserSetting> getSettings() {
+    return settings;
+  }
+
+  public void setSettings(Set<MasterUserSetting> settings) {
+    this.settings.clear();
+    if (settings != null) {
+      settings.forEach(this::addSetting);
+    }
+  }
+
+  public void addSetting(MasterUserSetting setting) {
+    settings.add(setting);
+    setting.setMasterUser(this);
+  }
+
+  public void removeSetting(MasterUserSetting setting) {
+    settings.remove(setting);
+    setting.setMasterUser(null);
   }
 
   @Override
@@ -123,7 +174,7 @@ public class MasterUser extends DefaultEntity implements UserDetails {
 
   @Override
   public String getUsername() {
-    return masterUserPk.getVemail();
+    return vemail;
   }
 
   @Override

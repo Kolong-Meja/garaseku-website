@@ -1,34 +1,25 @@
 package com.faisalrmdhn.GaraseKu.model.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.faisalrmdhn.GaraseKu.util.Ulid;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Id;
 
 @Embeddable
 public class MasterUserPk implements Serializable {
 
-  @Id
   @Ulid
   @Column(name = "vuserid", nullable = false, length = 50)
   private String vuserid;
 
-  @Column(name = "vusername", nullable = false, length = 100)
-  private String vusername;
-
-  @Column(name = "vemail", nullable = false, length = 100)
-  private String vemail;
-
   public MasterUserPk() {
   }
 
-  public MasterUserPk(String vuserid, String vusername, String vemail) {
+  public MasterUserPk(String vuserid) {
     this.vuserid = vuserid;
-    this.vusername = vusername;
-    this.vemail = vemail;
   }
 
   public String getVuserid() {
@@ -39,20 +30,20 @@ public class MasterUserPk implements Serializable {
     this.vuserid = vuserid;
   }
 
-  public String getVusername() {
-    return vusername;
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (!(object instanceof MasterUserPk that)) {
+      return false;
+    }
+    return Objects.equals(vuserid, that.vuserid);
   }
 
-  public void setVusername(String vusername) {
-    this.vusername = vusername;
-  }
-
-  public String getVemail() {
-    return vemail;
-  }
-
-  public void setVemail(String vemail) {
-    this.vemail = vemail;
+  @Override
+  public int hashCode() {
+    return Objects.hash(vuserid);
   }
 
 }
