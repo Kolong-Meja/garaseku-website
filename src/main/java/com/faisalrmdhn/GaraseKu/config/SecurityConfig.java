@@ -6,9 +6,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.faisalrmdhn.GaraseKu.repository.MasterUserRepository;
 import com.faisalrmdhn.GaraseKu.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -16,23 +21,28 @@ import com.faisalrmdhn.GaraseKu.security.JwtAuthenticationFilter;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-  public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-    this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
   }
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+  public UserDetailsService userDetailsService(MasterUserRepository masterUserRepository) {
+    return email -> masterUserRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User was not found."));
+  }
+
+  @Bean
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity httpSecurity,
+      JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
     return httpSecurity.csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authorize -> authorize
-            .requestMatchers("/")
+            .requestMatchers("/", "/api/auth/login", "/api/auth/register", "/api/auth/refresh")
             .permitAll()
-            .requestMatchers("/api/auth/**")
-            .hasAnyRole("user")
-            .requestMatchers("/api/admin/**", "/api/auth/admin/**")
-            .hasAnyRole("admin", "super_admin")
+            .requestMatchers("/api/admin/**")
+            .hasAnyRole("ADMIN", "SUPER_ADMIN")
             .anyRequest()
             .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
