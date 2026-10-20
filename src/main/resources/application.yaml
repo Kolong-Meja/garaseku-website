@@ -10,11 +10,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-jwt:
-  public:
-    key: classpath:keys/privatekey.pem
-  private:
-    key: classpath:keys/pubkey.pem
-  expiration: 3600000
-  refresh:
-    expiration: 604800000
+  jwt:
+    public:
+      key: classpath:keys/privatekey.pem
+    private:
+      key: classpath:keys/pubkey.pem
+    expiration: 3600000
+    refresh:
+      expiration: 604800000

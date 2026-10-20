@@ -31,16 +31,16 @@ import io.jsonwebtoken.security.InvalidKeyException;
 
 @Component
 public class JwtAuthenticationHandler {
-  @Value("${jwt.private.key}")
+  @Value("${spring.jwt.private.key}")
   private RSAPrivateKey privateKey;
 
-  @Value("${jwt.public.key}")
+  @Value("${spring.jwt.public.key}")
   private RSAPublicKey publicKey;
 
-  @Value("${jwt.expiration}")
+  @Value("${spring.jwt.expiration}")
   private long jwtExpirationMs;
 
-  @Value("${jwt.refresh.token.expiration}")
+  @Value("${spring.jwt.refresh.expiration}")
   private long refreshTokenExpirationMs;
 
   private static final String TOKEN_TYPE_CLAIM = "token_type";
