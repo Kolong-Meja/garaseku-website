@@ -1,3 +1,8 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
 spring:
   application:
     name: GaraseKu
@@ -6,15 +11,32 @@ spring:
     username: garaseku-admin
     password: Garaseku5881
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 2000
   jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
-  jwt:
-    public:
-      key: classpath:keys/privatekey.pem
-    private:
-      key: classpath:keys/pubkey.pem
-    expiration: 3600000
-    refresh:
-      expiration: 604800000
+
+jwt:
+  public:
+    key: classpath:keys/pubkey.pem
+  private:
+    key: classpath:keys/privatekey.pem
+  expiration: 3600000
+  refresh:
+    expiration: 604800000
+
+logging:
+  level:
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.beans.factory: INFO
