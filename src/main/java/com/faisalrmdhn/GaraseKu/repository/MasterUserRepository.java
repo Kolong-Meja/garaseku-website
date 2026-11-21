@@ -44,4 +44,7 @@ public interface MasterUserRepository extends JpaRepository<MasterUser, MasterUs
   boolean existsByVusernameIgnoreCase(String vusername);
 
   boolean existsByVemailIgnoreCase(String vemail);
+
+  @Query("SELECT COUNT(u) FROM MasterUser u")
+  long countAll();
 }

@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,8 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class AuthServiceImpl implements AuthService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
+
   private static final ZoneId APPLICATION_ZONE = ZoneId.of("Asia/Jakarta");
   private static final DateTimeFormatter RESPONSE_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
   private static final String DEFAULT_ROLE = "user";
@@ -64,14 +68,17 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional(readOnly = true)
   public ResponseEntity<ApiResponse> login(LoginRequest loginRequest) {
+    LOGGER.info("[GARASEKU LOG]: Attempting login.");
     String email = normalizeEmail(loginRequest.email());
     MasterUser user = masterUserRepository.findByEmail(email)
         .orElseThrow(() -> new UnauthorizedException("Invalid email or password."));
 
     if (!passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
+      LOGGER.error("[GARASEKU LOG]: Invalid email or password.");
       throw new UnauthorizedException("Invalid email or password.");
     }
 
+    LOGGER.info("[GARASEKU LOG]: Login successful.");
     AuthenticationResponse authentication = createAuthenticationResponse(user);
     return response(HttpStatus.OK, "Login successful.", authentication);
   }
@@ -79,26 +86,33 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional(readOnly = true)
   public ResponseEntity<ApiResponse> me(HttpServletRequest request) {
+    LOGGER.info("[GARASEKU LOG]: Retrieving authenticated user information.");
+
     if (request.getUserPrincipal() == null || request.getUserPrincipal().getName() == null) {
+      LOGGER.error("[GARASEKU LOG]: Authentication is required.");
       throw new UnauthorizedException("Authentication is required.");
     }
 
     MasterUser user = masterUserRepository.findByEmailWithProfile(request.getUserPrincipal().getName())
         .orElseThrow(() -> new UnauthorizedException("Authenticated user no longer exists."));
 
+    LOGGER.info("[GARASEKU LOG]: Authenticated user retrieved successfully.");
     return response(HttpStatus.OK, "Authenticated user retrieved successfully.", toUserResponse(user));
   }
 
   @Override
   @Transactional
   public ResponseEntity<ApiResponse> register(RegisterRequest registerRequest) {
+    LOGGER.info("[GARASEKU LOG]: Attempting registration.");
     String username = normalizeUsername(registerRequest.username());
     String email = normalizeEmail(registerRequest.email());
 
     if (masterUserRepository.existsByVusernameIgnoreCase(username)) {
+      LOGGER.error("[GARASEKU LOG]: Username is already registered.");
       throw new BadRequestException("Username is already registered.");
     }
     if (masterUserRepository.existsByVemailIgnoreCase(email)) {
+      LOGGER.error("[GARASEKU LOG]: Email is already registered.");
       throw new BadRequestException("Email is already registered.");
     }
 
@@ -120,8 +134,10 @@ public class AuthServiceImpl implements AuthService {
     try {
       MasterUser savedUser = masterUserRepository.saveAndFlush(user);
       AuthenticationResponse authentication = createAuthenticationResponse(savedUser);
+      LOGGER.info("[GARASEKU LOG]: Registration successful.");
       return response(HttpStatus.CREATED, "Registration successful.", authentication);
     } catch (DataIntegrityViolationException exception) {
+      LOGGER.error("[GARASEKU LOG]: Username or email is already registered.");
       throw new BadRequestException("Username or email is already registered.");
     }
   }
@@ -129,16 +145,19 @@ public class AuthServiceImpl implements AuthService {
   @Override
   @Transactional(readOnly = true)
   public ResponseEntity<ApiResponse> refresh(RefreshTokenRequest refreshTokenRequest) {
+    LOGGER.info("[GARASEKU LOG]: Attempting to refresh token.");
     String refreshToken = refreshTokenRequest.refreshToken().trim();
     String email = jwtAuthenticationHandler.extractUsername(refreshToken);
     MasterUser user = masterUserRepository.findByEmail(email)
         .orElseThrow(() -> new UnauthorizedException("Invalid or expired refresh token."));
 
     if (!jwtAuthenticationHandler.isRefreshTokenValid(refreshToken, user)) {
+      LOGGER.error("[GARASEKU LOG]: Invalid or expired refresh token.");
       throw new UnauthorizedException("Invalid or expired refresh token.");
     }
 
     AuthenticationResponse authentication = createAuthenticationResponse(user);
+    LOGGER.info("[GARASEKU LOG]: Token refreshed successfully.");
     return response(HttpStatus.OK, "Token refreshed successfully.", authentication);
   }
 
