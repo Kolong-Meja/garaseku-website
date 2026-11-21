@@ -23,11 +23,11 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     show-sql: true
   flyway:
     enabled: true
-    locations: classpath:db/migrations
+    locations: classpath:db/migration
     lock-retry-count: 5
 
 jwt:

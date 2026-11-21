@@ -152,6 +152,14 @@
       <plugin>
         <groupId>org.flywaydb</groupId>
         <artifactId>flyway-maven-plugin</artifactId>
+        <configuration>
+          <url>jdbc:postgresql://127.0.0.1:5880/garaseku-db</url>
+          <user>garaseku-admin</user>
+          <password>Garaseku5881</password>
+          <locations>
+            <location>filesystem:src/main/resources/db/migrations</location>
+          </locations>
+        </configuration>
         <version>13.13.0</version>
       </plugin>
       <plugin>
