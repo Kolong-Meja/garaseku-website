@@ -25,6 +25,11 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migrations
+    repair: true
 
 jwt:
   public:

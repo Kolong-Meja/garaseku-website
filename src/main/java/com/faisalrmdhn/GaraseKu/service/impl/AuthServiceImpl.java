@@ -146,7 +146,8 @@ public class AuthServiceImpl implements AuthService {
     MasterRole role = new MasterRole(
         idGenerator.generate(),
         DEFAULT_ROLE,
-        "Default role for registered users.");
+        "Default role for registered users.",
+        new LinkedHashSet<>());
     role.setCreatedBy("SYSTEM");
     role.setCreatedAt(now);
     return masterRoleRepository.save(role);

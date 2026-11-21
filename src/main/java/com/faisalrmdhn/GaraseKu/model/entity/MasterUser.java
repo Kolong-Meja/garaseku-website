@@ -25,7 +25,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "master_users", indexes = {
-    @Index(name = "idx_master_users_phone_number", columnList = "vphonenumber")
+    @Index(name = "idx_master_users_phone_number", columnList = "vphonenumber"),
+    @Index(name = "idx_master_users_email", columnList = "vemail"),
+    @Index(name = "idx_master_users_username", columnList = "vusername")
 })
 public class MasterUser extends DefaultEntity implements UserDetails {
   @EmbeddedId
@@ -40,7 +42,7 @@ public class MasterUser extends DefaultEntity implements UserDetails {
   @Column(name = "vphonenumber", nullable = true, length = 20)
   private String vphonenumber;
 
-  @Column(name = "vpassword", nullable = true, length = 100)
+  @Column(name = "vpassword", nullable = false, length = 100)
   private String vpassword;
 
   @Column(name = "vfullname", nullable = true, length = 150)

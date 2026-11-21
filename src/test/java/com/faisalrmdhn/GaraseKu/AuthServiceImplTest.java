@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -78,8 +79,7 @@ class AuthServiceImplTest {
         "081234567890",
         "Strong123",
         "Faisal Ramadhan");
-    MasterRole userRole = new MasterRole("role-user", "user", "Default user");
-
+    MasterRole userRole = new MasterRole("role-user", "user", "Default user", new LinkedHashSet<>());
     when(masterUserRepository.existsByVusernameIgnoreCase("faisal_dev")).thenReturn(false);
     when(masterUserRepository.existsByVemailIgnoreCase("faisal@garaseku.co.id")).thenReturn(false);
     when(masterRoleRepository.findByVrolenameIgnoreCase("user")).thenReturn(Optional.of(userRole));
@@ -164,7 +164,8 @@ class AuthServiceImplTest {
   }
 
   private MasterUser user() {
-    MasterRole role = new MasterRole("role-user", "user", "Default user");
+    MasterRole role = new MasterRole(
+        "role-user", "user", "Default user", new LinkedHashSet<>());
     MasterUser user = new MasterUser();
     user.setMasterUserPk(new MasterUserPk("user-1"));
     user.setVusername("faisal_dev");
