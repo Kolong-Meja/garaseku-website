@@ -27,9 +27,10 @@ spring:
     show-sql: true
   flyway:
     enabled: true
-    baseline-on-migrate: true
+    baseline-on-migrate: true 
     locations: classpath:db/migrations
     repair: true
+    lock-retry-count: 5
 
 jwt:
   public:
