@@ -30,7 +30,6 @@ import com.faisalrmdhn.GaraseKu.model.dto.responses.AuthenticatedUserResponse;
 import com.faisalrmdhn.GaraseKu.model.dto.responses.AuthenticationResponse;
 import com.faisalrmdhn.GaraseKu.model.entity.MasterRole;
 import com.faisalrmdhn.GaraseKu.model.entity.MasterUser;
-import com.faisalrmdhn.GaraseKu.model.entity.MasterUserPk;
 import com.faisalrmdhn.GaraseKu.repository.MasterRoleRepository;
 import com.faisalrmdhn.GaraseKu.repository.MasterUserRepository;
 import com.faisalrmdhn.GaraseKu.security.JwtAuthenticationHandler;
@@ -167,7 +166,7 @@ class AuthServiceImplTest {
     MasterRole role = new MasterRole(
         "role-user", "user", "Default user", new LinkedHashSet<>());
     MasterUser user = new MasterUser();
-    user.setMasterUserPk(new MasterUserPk("user-1"));
+    user.setVuserid("user-1");
     user.setVusername("faisal_dev");
     user.setVemail("faisal@garaseku.co.id");
     user.setVphonenumber("081234567890");
