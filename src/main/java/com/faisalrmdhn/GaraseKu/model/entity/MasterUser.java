@@ -11,11 +11,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.faisalrmdhn.GaraseKu.util.Ulid;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -30,8 +32,11 @@ import jakarta.persistence.Table;
     @Index(name = "idx_master_users_username", columnList = "vusername")
 })
 public class MasterUser extends DefaultEntity implements UserDetails {
-  @EmbeddedId
-  private MasterUserPk masterUserPk;
+
+  @Id
+  @Ulid
+  @Column(name = "vuserid", nullable = false, length = 50)
+  private String vuserid;
 
   @Column(name = "vusername", nullable = false, unique = true, length = 100)
   private String vusername;
@@ -61,9 +66,9 @@ public class MasterUser extends DefaultEntity implements UserDetails {
   public MasterUser() {
   }
 
-  public MasterUser(MasterUserPk masterUserPk, String vusername, String vemail, String vphonenumber,
+  public MasterUser(String vuserid, String vusername, String vemail, String vphonenumber,
       String vpassword, String vfullname, Set<MasterRole> roles) {
-    this.masterUserPk = masterUserPk;
+    this.vuserid = vuserid;
     this.vusername = vusername;
     this.vemail = vemail;
     this.vphonenumber = vphonenumber;
@@ -73,10 +78,10 @@ public class MasterUser extends DefaultEntity implements UserDetails {
   }
 
   public MasterUser(String createdBy, LocalDateTime createdAt, String updatedBy, LocalDateTime updatedAt,
-      MasterUserPk masterUserPk, String vusername, String vemail, String vphonenumber, String vpassword,
+      String vuserid, String vusername, String vemail, String vphonenumber, String vpassword,
       String vfullname, Set<MasterRole> roles) {
     super(createdBy, createdAt, updatedBy, updatedAt);
-    this.masterUserPk = masterUserPk;
+    this.vuserid = vuserid;
     this.vusername = vusername;
     this.vemail = vemail;
     this.vphonenumber = vphonenumber;
@@ -85,12 +90,12 @@ public class MasterUser extends DefaultEntity implements UserDetails {
     setRoles(roles);
   }
 
-  public MasterUserPk getMasterUserPk() {
-    return masterUserPk;
+  public String getVuserid() {
+    return vuserid;
   }
 
-  public void setMasterUserPk(MasterUserPk masterUserPk) {
-    this.masterUserPk = masterUserPk;
+  public void setVuserid(String vuserid) {
+    this.vuserid = vuserid;
   }
 
   public String getVusername() {

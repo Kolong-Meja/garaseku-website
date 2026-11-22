@@ -29,7 +29,6 @@ import com.faisalrmdhn.GaraseKu.model.dto.responses.AuthenticatedUserResponse;
 import com.faisalrmdhn.GaraseKu.model.dto.responses.AuthenticationResponse;
 import com.faisalrmdhn.GaraseKu.model.entity.MasterRole;
 import com.faisalrmdhn.GaraseKu.model.entity.MasterUser;
-import com.faisalrmdhn.GaraseKu.model.entity.MasterUserPk;
 import com.faisalrmdhn.GaraseKu.repository.MasterRoleRepository;
 import com.faisalrmdhn.GaraseKu.repository.MasterUserRepository;
 import com.faisalrmdhn.GaraseKu.security.JwtAuthenticationHandler;
@@ -121,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
         .orElseGet(() -> createDefaultRole(now));
 
     MasterUser user = new MasterUser();
-    user.setMasterUserPk(new MasterUserPk(idGenerator.generate()));
+    user.setVuserid(idGenerator.generate());
     user.setVusername(username);
     user.setVemail(email);
     user.setVphonenumber(registerRequest.phoneNumber().trim());
@@ -193,7 +192,7 @@ public class AuthServiceImpl implements AuthService {
             LinkedHashMap::new));
 
     return new AuthenticatedUserResponse(
-        user.getMasterUserPk().getVuserid(),
+        user.getVuserid(),
         user.getVusername(),
         user.getVemail(),
         user.getVphonenumber(),

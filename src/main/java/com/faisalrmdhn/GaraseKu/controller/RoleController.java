@@ -3,6 +3,7 @@ package com.faisalrmdhn.GaraseKu.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,8 +33,9 @@ public class RoleController {
 
   @GetMapping("/")
   public ResponseEntity<ApiResponse> getAll(
-      @RequestParam(value = "q", required = false, defaultValue = "") SearchRequest searchRequest,
-      @RequestParam(required = false) PaginationRequest paginationRequest) {
+      @RequestParam(value = "q", required = false, defaultValue = "") String query,
+      @ModelAttribute PaginationRequest paginationRequest) {
+    SearchRequest searchRequest = new SearchRequest(query);
     return roleService.findAll(searchRequest, paginationRequest);
   }
 

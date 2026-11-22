@@ -3,15 +3,14 @@ package com.faisalrmdhn.GaraseKu.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.faisalrmdhn.GaraseKu.model.entity.MasterUser;
-import com.faisalrmdhn.GaraseKu.model.entity.MasterUserPk;
 
-public interface MasterUserRepository extends JpaRepository<MasterUser, MasterUserPk> {
+public interface MasterUserRepository extends JpaRepository<MasterUser, String> {
 
   @Query("SELECT u FROM MasterUser u WHERE u.masterUserPk.vuserid = :vuserid")
   Optional<MasterUser> findByUserId(@Param("vuserid") String vuserid);
