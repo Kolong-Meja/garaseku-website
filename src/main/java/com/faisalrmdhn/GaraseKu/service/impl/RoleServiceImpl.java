@@ -60,9 +60,7 @@ public class RoleServiceImpl implements RoleService {
       SearchRequest searchRequest,
       PaginationRequest paginationRequest) {
     LOGGER.info("Finding roles");
-    String query = searchRequest == null
-        ? ""
-        : searchRequest.query().trim();
+    String query = searchRequest == null ? "" : searchRequest.query().trim();
 
     Pageable pageable = buildPageable(paginationRequest);
     Page<MasterRole> rolePage = masterRoleRepository.searchRoles(
@@ -116,8 +114,8 @@ public class RoleServiceImpl implements RoleService {
   }
 
   @Override
-  public ResponseEntity<ApiResponse> findById(String vuserid) {
-    LOGGER.info("Finding role by ID: {}", vuserid);
+  public ResponseEntity<ApiResponse> findById(String vroleid) {
+    LOGGER.info("Finding role by ID: {}", vroleid);
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'findById'");
   }
@@ -153,18 +151,20 @@ public class RoleServiceImpl implements RoleService {
     return ResponseEntity.status(status).body(body);
   }
 
-  private Pageable buildPageable(PaginationRequest request) {
-    int page = Math.max(request.page(), DEFAULT_PAGE);
-    int size = request.size() <= 0
+  private Pageable buildPageable(PaginationRequest paginationRequest) {
+    int page = paginationRequest.page() == null
+        ? DEFAULT_PAGE
+        : Math.max(paginationRequest.page(), DEFAULT_PAGE);
+    int size = paginationRequest.size() == null || paginationRequest.size() <= 0
         ? DEFAULT_SIZE
-        : Math.min(request.size(), MAX_PAGE_SIZE);
+        : Math.min(paginationRequest.size(), MAX_PAGE_SIZE);
 
     String sortField = ROLE_SORT_FIELDS.getOrDefault(
-        request.sortField(),
+        paginationRequest.sortField() == null ? "name" : paginationRequest.sortField(),
         "vrolename");
-    Sort.Direction direction = "desc".equalsIgnoreCase(request.direction())
-        ? Sort.Direction.DESC
-        : Sort.Direction.ASC;
+
+    Sort.Direction direction = paginationRequest.direction() == null ? Sort.Direction.ASC
+        : "desc".equalsIgnoreCase(paginationRequest.direction()) ? Sort.Direction.DESC : Sort.Direction.ASC;
 
     return PageRequest.of(
         page,
