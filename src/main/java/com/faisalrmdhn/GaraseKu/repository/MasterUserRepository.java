@@ -12,15 +12,15 @@ import com.faisalrmdhn.GaraseKu.model.entity.MasterUser;
 
 public interface MasterUserRepository extends JpaRepository<MasterUser, String> {
 
-  @Query("SELECT u FROM MasterUser u WHERE u.masterUserPk.vuserid = :vuserid")
+  @Query("SELECT u FROM MasterUser u WHERE u.vuserid = :vuserid")
   Optional<MasterUser> findByUserId(@Param("vuserid") String vuserid);
 
   @EntityGraph(attributePaths = "settings")
-  @Query("SELECT u FROM MasterUser u WHERE u.masterUserPk.vuserid = :vuserid")
+  @Query("SELECT u FROM MasterUser u WHERE u.vuserid = :vuserid")
   Optional<MasterUser> findByUserIdWithSettings(@Param("vuserid") String vuserid);
 
   @EntityGraph(attributePaths = "roles")
-  @Query("SELECT u FROM MasterUser u WHERE u.masterUserPk.vuserid = :vuserid")
+  @Query("SELECT u FROM MasterUser u WHERE u.vuserid = :vuserid")
   Optional<MasterUser> findByUserIdWithRoles(@Param("vuserid") String vuserid);
 
   @Query("SELECT u FROM MasterUser u WHERE u.vusername = :vusername")

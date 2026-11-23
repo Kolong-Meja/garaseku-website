@@ -10,16 +10,22 @@ import com.faisalrmdhn.GaraseKu.model.entity.MasterUserSetting;
 
 public interface MasterUserSettingRepository extends JpaRepository<MasterUserSetting, String> {
 
-  @Query("SELECT us FROM MasterUserSetting us WHERE us.masterUser.masterUserPk.vuserid = :vuserid ORDER BY us.vsettingkey ASC")
-  List<MasterUserSetting> findAllByMasterUserMasterUserPkVuseridOrderByVsettingkeyAsc(String vuserid);
+  @Query("""
+          SELECT us
+          FROM MasterUserSetting us
+          WHERE us.masterUser.vuserid = :vuserid
+          ORDER BY us.vsettingkey ASC
+      """)
+  List<MasterUserSetting> findAllByMasterUser_IdOrderByVsettingkeyAsc(
+      String vuserid);
 
-  @Query("SELECT us FROM MasterUserSetting us WHERE us.masterUser.masterUserPk.vuserid = :vuserid AND us.vsettingkey = :vsettingkey")
-  Optional<MasterUserSetting> findByMasterUserMasterUserPkVuseridAndVsettingkey(String vuserid, String vsettingkey);
+  @Query("SELECT us FROM MasterUserSetting us WHERE us.masterUser.vuserid = :vuserid AND us.vsettingkey = :vsettingkey")
+  Optional<MasterUserSetting> findByMasterUser_IdAndVsettingkey(String vuserid, String vsettingkey);
 
-  @Query("SELECT CASE WHEN COUNT(us) > 0 THEN true ELSE false END FROM MasterUserSetting us WHERE us.masterUser.masterUserPk.vuserid = :vuserid AND us.vsettingkey = :vsettingkey")
-  boolean existsByMasterUserMasterUserPkVuseridAndVsettingkey(String vuserid, String vsettingkey);
+  @Query("SELECT CASE WHEN COUNT(us) > 0 THEN true ELSE false END FROM MasterUserSetting us WHERE us.masterUser.vuserid = :vuserid AND us.vsettingkey = :vsettingkey")
+  boolean existsByMasterUser_IdAndVsettingkey(String vuserid, String vsettingkey);
 
-  long deleteByMasterUserMasterUserPkVuseridAndVsettingkey(String vuserid, String vsettingkey);
+  long deleteByMasterUser_VuseridAndVsettingkey(String vuserid, String vsettingkey);
 
-  long deleteAllByMasterUserMasterUserPkVuserid(String vuserid);
+  void deleteAllByMasterUser_Vuserid(String vuserid);
 }

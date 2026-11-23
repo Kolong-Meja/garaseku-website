@@ -10,11 +10,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.faisalrmdhn.GaraseKu.model.dto.RoleDTO;
 import com.faisalrmdhn.GaraseKu.model.entity.MasterRole;
 
 public interface MasterRoleRepository extends JpaRepository<MasterRole, String> {
-
   @Query(value = """
       SELECT r
       FROM MasterRole r
@@ -63,20 +61,26 @@ public interface MasterRoleRepository extends JpaRepository<MasterRole, String> 
   List<MasterRole> findAllWithUsersByVroleidIn(
       @Param("roleIds") Collection<String> roleIds);
 
-  @Query("SELECT r FROM MasterRole WHERE r.vroleid = :vroleid")
-  Optional<MasterRole> findById(String vroleid);
+  @Query("SELECT r FROM MasterRole r WHERE r.vroleid = :vroleid")
+  Optional<MasterRole> findByVroleid(String vroleid);
 
   @Query("SELECT r FROM MasterRole r LEFT JOIN FETCH r.users WHERE r.vroleid = :vroleid")
   Optional<MasterRole> findByIdWithUsers(String vroleid);
 
   @Query("SELECT r FROM MasterRole r LEFT JOIN FETCH r.users ORDER BY r.vrolename ASC")
-  List<RoleDTO> findAllWithUsersByOrderByVrolenameAsc();
+  List<MasterRole> findAllWithUsersByOrderByVrolenameAsc();
 
   @Query("SELECT r FROM MasterRole r WHERE LOWER(r.vrolename) = LOWER(:vrolename)")
   Optional<MasterRole> findByVrolenameIgnoreCase(String vrolename);
 
-  @Query("SELECT r FROM MasterRole r LEFT JOIN FETCH r.users WHERE LOWER(r.users.vusername) = LOWER(:username)")
-  List<MasterRole> findByUsers_VusernameIgnoreCase(String username);
+  @Query("""
+          SELECT DISTINCT r
+          FROM MasterRole r
+          JOIN r.users u
+          WHERE LOWER(u.vusername) = LOWER(:username)
+      """)
+  List<MasterRole> findByUsers_VusernameIgnoreCase(
+      @Param("username") String username);
 
   boolean existsByVrolenameIgnoreCase(String vrolename);
 
